@@ -5,8 +5,8 @@ library(leaflet)
 ui <- fluidPage(
   leafletOutput("map"),
   absolutePanel(top = 10, right = 10,
-                sliderInput("range", "Frequency", min(data$SumAllYr), max(data$SumAllYr),
-                            value = range(data$SumAllYr), step = 0.1
+                sliderInput("total", "Frequency", min(data$total), max(data$total),
+                            value = range(data$total), step = 0.1
                 )
   )
 )
@@ -16,15 +16,23 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   data <- read.csv("data/mcp20m.csv")
   filteredData <- reactive({
-    data[data$SumAllYr >= input$range[1] & data$SumAllYr <= input$range[2],]
+    data[data$total >= input$range[1] & data$total <= input$range[2],]
   })
-  t.class <- colorFactor("Blues", data$SumAllYr, levels = TRUE)
+  
   output$map <- renderLeaflet({
-    leaflet() %>%
-      addTiles() %>%
-      addCircleMarkers(data = filteredData, data$x_wgs, data$y_wgs, radius = 1, popup = data$SumAllYr, color = ifelse(data$SumAllYr == "0", 'lightblue', 'red'))
+    # Use leaflet() here, and only include aspects of the map that
+    # won't need to change dynamically (at least, not unless the
+    # entire map is being torn down and recreated).
+    leaflet(data) %>% addTiles() %>%
+      fitBounds(~min(x_wgs), ~min(y_wgs), ~max(x_wgs), ~max(y_wgs))
+  })
+  
+  observe({
+    t.class <- colorFactor("Blues", filteredData$total, levels = TRUE)
+    leafletProxy("map", data = filteredData()) %>%
+      addCircleMarkers(filteredData$x_wgs, filteredData$y_wgs, radius = 1, color = ifelse(filteredData$total == "0", 'lightblue', 'red'))
   })
 }
-
+    
 #generate app
 shinyApp(ui, server)

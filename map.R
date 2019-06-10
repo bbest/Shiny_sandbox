@@ -10,11 +10,11 @@ ui <- fluidPage(
 #server
 server <- function(input, output, session) {
   data <- read.csv("data/mcp20m.csv")
-  t.class <- colorFactor("Blues", data$SumAllYr, levels = TRUE)
+  t.class <- colorFactor("Blues", data$total, levels = TRUE)
   output$map <- renderLeaflet({
     leaflet() %>%
       addTiles() %>%
-      addCircleMarkers(data$x_wgs, data$y_wgs, radius = 1, popup = data$SumAllYr, color = ifelse(data$SumAllYr == "0", 'lightblue', 'red'))
+      addCircleMarkers(data$x_wgs, data$y_wgs, radius = 1, color = ifelse(data$total == "0", 'lightblue', 'red'))
   })
 }
 

@@ -1,23 +1,27 @@
 library(shiny)
+
+#ui
 ui <- fluidPage(
-  titlePanel("Regression Model (Dataset: Swiss)"),
+  titlePanel(h3("Habitat use at Carrizo Plain National Monument, USA")),
   sidebarLayout(
     sidebarPanel(
-      selectInput("outcome", label = h3("Outcome"),
-                  choices = list("Fertility" = "Fertility",
-                                 "Agriculture" = "Agriculture",
-                                 "Examination" = "Examination",
-                                 "Education" = "Education",
-                                 "Catholic" = "Catholic",
-                                 "Infant.Mortality" = "Infant.Mortality"), selected = 1),
+      selectInput("outcome", label = h4("Estimate"),
+                  choices = list("Likelihood" = "probability",
+                                 "Log odds" = "log_odds"), selected = 1),
       
-      selectInput("indepvar", label = h3("Explanatory variable"),
-                  choices = list("Fertility" = "Fertility",
-                                 "Agriculture" = "Agriculture",
-                                 "Examination" = "Examination",
-                                 "Education" = "Education",
-                                 "Catholic" = "Catholic",
-                                 "Infant.Mortality" = "Infant.Mortality"), selected = 1)
+      selectInput("indepvar", label = h4("Predictor"),
+                  choices = list("shrub cover" = "shrub_cov",
+                                 "NDVI" = "NDVI",
+                                 "slope" = "slope",
+                                 "elevation" = "elevation",
+                                 "aspect" = "aspect",
+                                 "solar" = "solar"), selected = 1),
+      
+      selectInput("model", label = h4("Model"),
+                  choices = list("linear" = "lm",
+                                 "GAM" = "gam",
+                                 "loess" = "loess",
+                                 "best fit" = "auto"), selected = 1)
       
     ),
     
@@ -25,14 +29,12 @@ ui <- fluidPage(
       
       tabsetPanel(type = "tabs",
                   
-                  tabPanel("Scatterplot", plotOutput("scatterplot")), # Plot
-                  tabPanel("Distribution", # Plots of distributions
-                           fluidRow(
-                             column(6, plotOutput("distribution1")),
-                             column(6, plotOutput("distribution2")))
-                  ),
-                  tabPanel("Model Summary", verbatimTextOutput("summary")), # Regression output
-                  tabPanel("Data", DT::dataTableOutput('tbl')) # Data as datatable
+                  tabPanel("Regressions", plotOutput("regressions")),
+                  tabPanel("Distributions", plotOutput("distribution")),
+                  h4("Data"),
+                  p("At Carrizo Plain National Monument, California (35.19140N, 119.79290W), a 5 km2 was identified for ecological research.  This site was comprised of a foundation shrub species Ephedra californica with other vegetation and was occupied by the lizard species Gambelia sila.  For three years from 2016-2018, individual lizards were tracked using telemetry each summer when this species was primarily active.  Each instance was geotagged to within 5m, and specific ecological elements of habitat including shrub or open canopy microsites and micro-topography were recorded.  A total of 3553 relocations were recorded."),
+                  h4("Models"),
+                  p("The 95% maximum convex polygon (MCP) for all points was calculate using the R package 'adehabitat'.  Resource selection function models were applied to these data.  Individual telemetry relocations that fell within the 95% MCP were classified as 'used' locations and 'unused' habitat was randomly selected within range for subsequent resource selection models.  These points were then used in a logistic generalized linear mixed regression model with the predictor variables listed above, and the individual lizard ID was treated as a random effect.  Models were iterated 99 times, and mean probabilities for the model set are provided here.  All models were also retested using the R package 'ResourceSelection' to ensure estimate probabilities were robust.  The log odds ratio for probabilities was then calculated on these mean values as an effect size measure.   All analyses were done in R version 3.6.0, and the code is publicly archived at zenodo (DOI: 10.5281/zenodo.3240619).")
                   
       )
     )
@@ -40,40 +42,27 @@ ui <- fluidPage(
 
 
 
-# SERVER
+#server
 server <- function(input, output) {
+  #data
+  library(tidyverse)
+  data <- read.csv(url("https://ndownloader.figshare.com/files/15371705"))
   
-  # Regression output
-  output$summary <- renderPrint({
-    fit <- lm(swiss[,input$outcome] ~ swiss[,input$indepvar])
-    names(fit$coefficients) <- c("Intercept", input$var2)
-    summary(fit)
-  })
-  
-  # Data output
-  output$tbl = DT::renderDataTable({
-    DT::datatable(swiss, options = list(lengthChange = FALSE))
-  })
-  
-  
-  # Scatterplot output
-  output$scatterplot <- renderPlot({
-    plot(swiss[,input$indepvar], swiss[,input$outcome], main="Scatterplot",
-         xlab=input$indepvar, ylab=input$outcome, pch=19)
-    abline(lm(swiss[,input$outcome] ~ swiss[,input$indepvar]), col="red")
-    lines(lowess(swiss[,input$indepvar],swiss[,input$outcome]), col="blue")
+  #regressions
+  output$regressions <- renderPlot({
+    qplot(data[,input$indepvar], data[,input$outcome], geom = 'smooth', method = input$model, main="Predicted animal occurrence",
+          xlab=input$indepvar, ylab=input$outcome) 
+    
   }, height=400)
   
   
-  # Histogram output var 1
-  output$distribution1 <- renderPlot({
-    hist(swiss[,input$outcome], main="", xlab=input$outcome)
+  # Histogram
+  output$distribution <- renderPlot({
+    qplot(data[,input$outcome], binwidth = 0.1, main="Presence distribution for all predictors",  xlab=input$outcome)
   }, height=300, width=300)
   
-  # Histogram output var 2
-  output$distribution2 <- renderPlot({
-    hist(swiss[,input$indepvar], main="", xlab=input$indepvar)
-  }, height=300, width=300)
+  
 }
 
+#run app
 shinyApp(ui = ui, server = server)

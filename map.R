@@ -1,26 +1,20 @@
 library(shiny)
 library(leaflet)
 
-
-
 #ui
 ui <- fluidPage(
   leafletOutput("map")
 )
 
+
 #server
 server <- function(input, output, session) {
-  
-  points <- eventReactive(input$recalc, {
-    cbind(rnorm(40) * 2 + 13, rnorm(40) + 48)
-  }, ignoreNULL = FALSE)
-  
+  data <- read.csv("data/mcp20m.csv")
+  t.class <- colorFactor("Blues", data$SumAllYr, levels = TRUE)
   output$map <- renderLeaflet({
     leaflet() %>%
-      addProviderTiles(providers$Stamen.TonerLite,
-                       options = providerTileOptions(noWrap = TRUE)
-      ) %>%
-      addMarkers(data = points())
+      addTiles() %>%
+      addCircleMarkers(data$x_wgs, data$y_wgs, radius = 1, popup = data$SumAllYr, color = ifelse(data$SumAllYr == "0", 'lightblue', 'red'))
   })
 }
 

@@ -34,7 +34,7 @@ server <- function(input, output, session) {
     t.class <- colorFactor("Blues", filtered_df$status, levels = TRUE)
     leafletProxy("map", data = filtered_df()) %>%
       clearMarkers() %>%
-      addCircleMarkers(df$x_wgs, df$y_wgs, radius = 1, color = ifelse(filtered_df$status == "0", 'lightblue', 'red'))
+      addCircleMarkers(df$x_wgs, df$y_wgs, radius = 1, color = ifelse(df$status == "0", 'lightblue', 'red'))
   })  
 
 }

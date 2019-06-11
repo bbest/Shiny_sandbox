@@ -8,7 +8,7 @@ ui <- fluidPage(
     sidebarPanel(
       selectInput("var", label = h4("Variable"),
                   choices = list("observed" = "status",
-                                  "expected" = "expected"), selected = 1)
+                                 "expected" = "expected"), selected = 1)
     ),
     mainPanel = leafletOutput("map")
   )

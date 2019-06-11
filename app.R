@@ -36,6 +36,7 @@ ui <- fluidPage(
                   h4("Models"),
                   p("The 95% maximum convex polygon (MCP) for all points was calculate using the R package 'adehabitat'.  Resource selection function models were applied to these data.  Individual telemetry relocations that fell within the 95% MCP were classified as 'used' locations and 'unused' habitat was randomly selected within range for subsequent resource selection models.  These points were then used in a logistic generalized linear mixed regression model with the predictor variables listed above, and the individual lizard ID was treated as a random effect.  Models were iterated 99 times, and mean probabilities for the model set are provided here.  All models were also retested using the R package 'ResourceSelection' to ensure estimate probabilities were robust.  The log odds ratio for probabilities was then calculated on these mean values as an effect size measure.   All analyses were done in R version 3.6.0, and the code is publicly archived at zenodo (DOI: 10.5281/zenodo.3240619).")
                   
+                  
       )
     )
   ))

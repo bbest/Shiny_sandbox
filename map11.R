@@ -17,7 +17,7 @@ ui <- fluidPage(
 
 #server
 server <- function(input, output, session) {
-  df <- read.csv("data/mcp20m.csv")
+  df <- read.csv(url("https://ndownloader.figshare.com/files/15437489"))
   filtered_df <- reactive({
     df %>%
       filter(shrub_cover >= input$shrub_cover[1] & shrub_cover <= input$shrub_cover[2])

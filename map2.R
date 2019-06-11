@@ -5,7 +5,7 @@ library(leaflet)
 ui <- fluidPage(
   leafletOutput("map"),
   absolutePanel(top = 10, right = 10,
-                sliderInput("total", "Frequency", min(data$total), max(data$total),
+                sliderInput("shrub_cover", "Shrub cover", min(data$total), max(data$total),
                             value = range(data$total), step = 0.1
                 )
   )

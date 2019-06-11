@@ -12,3 +12,32 @@ preds <- l.all
 preds <- SpatialPixelsDataFrame(points=preds[c("x", "y")], data=preds)
 preds <- as(preds, "SpatialGridDataFrame")
 names(preds)
+
+data <- read.csv("data/mcp20m.csv")
+View(data)
+library(skimr)
+skim(data)
+
+library(ResourceSelection)
+m7 <- rspf(status ~ shrub_cover + NDVI + slope + elevation + aspect + solar, data, m=0, B = 99, model = TRUE)
+model <- as_tibble(m7$model)
+fitted_values <- as_tibble(m7$fitted.values)
+data_2 <- bind_cols(data, fitted_values) 
+data_2 <- data_2 %>%
+  rename(probability = value)
+
+data_2 <- data_2 %>%
+  mutate(expected = case_when(probability > 0.5 ~1, probability < 0.5 ~ 0))
+
+skim(data_2)
+min(data_2$probability)
+max(data_2$probability)
+ggplot(data_2, aes(probability)) +
+  geom_histogram()
+
+
+#write_csv(data_2, "data/mcp95_20m.csv")
+
+
+
+

@@ -20,14 +20,19 @@ server <- function(input, output, session) {
   df <- read.csv(url("https://ndownloader.figshare.com/files/15437489"))
   filtered_df <- reactive({
     df %>%
-      filter(shrub_cover >= input$shrub_cover[1] & shrub_cover <= input$shrub_cover[2])
+      #filter(shrub_cover >= input$shrub_cover[1] & shrub_cover <= input$shrub_cover[2])
+      # default: input$shrub_cover[1] == 5; input$shrub_cover[2] == NA
+      filter(shrub_cover <= input$shrub_cover[1])
   })
   
   output$map <- renderLeaflet({
     t.class <- colorFactor("Blues", df$status, levels = TRUE)
+    #browser()
+    message(glue::glue("nrow(filtered_df()) @ shrub_cover={invisible(input$shrub_cover[1])}: {nrow(filtered_df())}"))
     leaflet() %>%
       addTiles() %>%
-      addCircleMarkers(df$x_wgs, df$y_wgs, radius = 1, color = ifelse(df$status == "0", 'lightblue', 'red'))
+      #addCircleMarkers(df$x_wgs, df$y_wgs, radius = 1, color = ifelse(df$status == "0", 'lightblue', 'red'))
+      addCircleMarkers(filtered_df()$x_wgs, filtered_df()$y_wgs, radius = 1, color = ifelse(df$status == "0", 'lightblue', 'red'))
   })
   
   observe({
